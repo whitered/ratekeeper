@@ -3,7 +3,7 @@ defmodule Ratelim.MixProject do
 
   def project do
     [
-      app: :ratelim,
+      app: :ratekeeper,
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
@@ -15,7 +15,7 @@ defmodule Ratelim.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Ratelim.Application, []}
+      mod: {Ratekeeper.Application, []}
     ]
   end
 

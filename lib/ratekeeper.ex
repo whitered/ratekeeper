@@ -1,4 +1,4 @@
-defmodule Ratelim do
+defmodule Ratekeeper do
   use GenServer
 
   @name __MODULE__
@@ -25,8 +25,8 @@ defmodule Ratelim do
     GenServer.call(@name, {:time_to_wait, id})
   end
 
-  def register(id, timeout \\ 0) do
-    GenServer.call(@name, {:register, id, timeout})
+  def register(id, max_waiting_time \\ 0) do
+    GenServer.call(@name, {:register, id, max_waiting_time})
   end
 
   ## Server Callbacks
@@ -86,14 +86,14 @@ defmodule Ratelim do
     end
   end
 
-  def handle_call({:register, id, timeout}, _from, state) do
+  def handle_call({:register, id, max_waiting_time}, _from, state) do
     case state[id] do
       nil -> {:reply, 0, state}
       bucket ->
         now = current_time()
         time = next_available_time(bucket, now)
         delay = get_delay(time, now)
-        case delay <= timeout do
+        case delay <= max_waiting_time do
           true ->
             new_state = Map.put(state, id, register_hit(bucket, time))
             {:reply, delay, new_state}
