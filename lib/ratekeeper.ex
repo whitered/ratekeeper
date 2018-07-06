@@ -5,8 +5,8 @@ defmodule Ratekeeper do
 
   ## Client API
 
-  def start_link(_args) do
-    GenServer.start_link(__MODULE__, [], name: @name)
+  def start_link(limits) do
+    GenServer.start_link(__MODULE__, [limits], name: @name)
   end
 
   def add_limit(id, interval, limit) when interval > 0 and limit > 0 do
@@ -31,8 +31,8 @@ defmodule Ratekeeper do
 
   ## Server Callbacks
 
-  def init(_args) do
-    {:ok, %{}}
+  def init([arg]) do
+    {:ok, read_limits(arg)}
   end
 
   def handle_cast({:add_limit, id, interval, limit}, state) do
@@ -104,6 +104,18 @@ defmodule Ratekeeper do
   end
 
   ## implementation
+
+  defp read_limits(arg) do
+    arg
+    |> Enum.map(fn {id, limits} -> {id, %{intervals: build_intervals(limits), last_hit: current_time()}} end)
+    |> Map.new
+  end
+
+  defp build_intervals(limits) do
+    limits
+    |> Enum.map(fn {interval, limit} -> {interval, {limit, limit}} end)
+    |> Map.new
+  end
 
   defp current_time, do: :os.system_time(:millisecond)
 
