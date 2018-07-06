@@ -10,6 +10,7 @@ defmodule Ratelim.Application do
     children = [
       # Starts a worker by calling: Ratelim.Worker.start_link(arg)
       # {Ratelim.Worker, arg},
+      Ratelim
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
