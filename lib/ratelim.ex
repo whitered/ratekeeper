@@ -13,6 +13,14 @@ defmodule Ratelim do
     GenServer.cast(@name, {:add_limit, id, interval, limit})
   end
 
+  def delete_limit(id, interval) do
+    GenServer.cast(@name, {:delete_limit, id, interval})
+  end
+
+  def reset_hits(id) do
+    GenServer.cast(@name, {:reset_hits, id})
+  end
+
   def time_to_wait(id) do
     GenServer.call(@name, {:time_to_wait, id})
   end
@@ -32,9 +40,33 @@ defmodule Ratelim do
       case state[id] do
         nil ->
           put_in(state[id], %{intervals: %{interval => {limit, 0}}, last_hit: current_time()})
-        _bucket ->
+        _ ->
           update_intervals = fn map ->
             Map.update(map, interval, {limit, 0}, fn {_old_lim, hits} -> {limit, hits} end)
+          end
+          update_in(state[id][:intervals], update_intervals)
+      end
+    {:noreply, new_state}
+  end
+
+  def handle_cast({:delete_limit, id, interval}, state) do
+    new_state =
+      case state[id] do
+        nil -> state
+        _ -> pop_in(state[id][:intervals][interval]) |> elem(1)
+      end
+    {:noreply, new_state}
+  end
+
+  def handle_cast({:reset_hits, id}, state) do
+    new_state = 
+      case state[id] do
+        nil -> state
+        _ ->
+          update_intervals = fn map ->
+            map
+            |> Enum.map(fn {interval, {limit, _hits}} -> {interval, {limit, 0}} end)
+            |> Map.new()
           end
           update_in(state[id][:intervals], update_intervals)
       end
