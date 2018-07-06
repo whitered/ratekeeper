@@ -39,10 +39,10 @@ defmodule Ratekeeper do
     new_state =
       case state[id] do
         nil ->
-          put_in(state[id], %{intervals: %{interval => {limit, 0}}, last_hit: current_time()})
+          put_in(state[id], %{intervals: %{interval => {limit, limit}}, last_hit: current_time()})
         _ ->
           update_intervals = fn map ->
-            Map.update(map, interval, {limit, 0}, fn {_old_lim, hits} -> {limit, hits} end)
+            Map.update(map, interval, {limit, limit}, fn {_old_lim, hits} -> {limit, hits} end)
           end
           update_in(state[id][:intervals], update_intervals)
       end
