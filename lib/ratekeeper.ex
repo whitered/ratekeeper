@@ -117,7 +117,12 @@ defmodule Ratekeeper do
     |> Map.new
   end
 
-  defp current_time, do: :os.system_time(:millisecond)
+  if Mix.env == :test do
+    @now :os.system_time(:millisecond)
+    defp current_time, do: @now
+  else
+    defp current_time, do: :os.system_time(:millisecond)
+  end
 
   defp next_available_time(bucket, current_time) do
     bucket
