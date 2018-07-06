@@ -3,6 +3,16 @@
 Ratekeeper allows you to rate limit calls to external API or anything else.
 It supports complex rate limits and estimates time left to reset limits.
 
+## Installation
+
+Add `ratekeeper` as dependency in `mix.exs`
+
+``` elixir
+def deps do
+    [{:ratekeeper, "~> 0.1.0"}]
+end
+```
+
 ## Usage
 
 Set the limits:
