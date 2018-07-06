@@ -12,10 +12,9 @@ iex(1)> Ratekeeper.add_limit "api.org", 1000, 1
 iex(2)> Ratekeeper.add_limit "api.org", 60_000, 5
 :ok
 ```
-Here we set 2 limits: 1 request per second and 5 requests / minute.
+Here we set 2 limits for "api.org": 1 request per second and 5 requests / minute.
 
-Now you should appoint your rate limited request with
-Ratekeeper.register:
+Now you should appoint your requests with Ratekeeper.register:
 
 ```elixir
 case Ratekeeper.register("api.org", 60_000) do
@@ -36,7 +35,7 @@ iex(3)> Ratekeeper.time_to_wait "api.org"
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ratelim` to your list of dependencies in `mix.exs`:
+by adding `ratekeeper` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
