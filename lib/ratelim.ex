@@ -77,10 +77,11 @@ defmodule Ratelim do
     case state[id] do
       nil -> {:reply, 0, state}
       bucket ->
+        now = current_time()
         ttw =
           bucket
-          |> next_available_time()
-          |> get_delay()
+          |> next_available_time(now)
+          |> get_delay(now)
         {:reply, ttw, state}
     end
   end
@@ -89,8 +90,9 @@ defmodule Ratelim do
     case state[id] do
       nil -> {:reply, 0, state}
       bucket ->
-        time = next_available_time(bucket)
-        delay = get_delay(time)
+        now = current_time()
+        time = next_available_time(bucket, now)
+        delay = get_delay(time, now)
         case delay <= timeout do
           true ->
             new_state = Map.put(state, id, register_hit(bucket, time))
@@ -105,14 +107,15 @@ defmodule Ratelim do
 
   defp current_time, do: :os.system_time(:millisecond)
 
-  defp next_available_time(bucket) do
+  defp next_available_time(bucket, current_time) do
     bucket
     |> get_filled_intervals()
     |> get_next_available(bucket[:last_hit])
+    |> max(current_time)
   end
 
-  defp get_delay(time) do
-    max(0, time - current_time())
+  defp get_delay(time, current_time) do
+    max(0, time - current_time)
   end
 
   defp get_filled_intervals(%{intervals: intervals}) do
