@@ -10,7 +10,7 @@ Add `ratekeeper` as dependency in `mix.exs`
 
 ``` elixir
 def deps do
-    [{:ratekeeper, "~> 0.1.0"}]
+    [{:ratekeeper, "~> 0.2.0"}]
 end
 ```
 
