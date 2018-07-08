@@ -158,6 +158,7 @@ defmodule Ratekeeper do
 
   ## implementation
 
+  defp read_limits(nil), do: %{}
   defp read_limits(arg) do
     arg
     |> Enum.map(fn {id, limits} -> {id, %{intervals: build_intervals(limits), last_hit: current_time()}} end)
