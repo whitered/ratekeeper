@@ -82,6 +82,7 @@ defmodule Ratekeeper do
 
   ## Server Callbacks
 
+  @doc false
   def init([arg]) do
     {:ok, read_limits(arg)}
   end
