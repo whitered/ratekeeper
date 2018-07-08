@@ -1,30 +1,81 @@
 defmodule Ratekeeper do
+  @moduledoc """
+  Ratekeeper is a library to schedule rate-limited actions.
+
+  Limits can be set on initialization:
+  ```
+  Ratekeeper.start_link %{"myapi.org" => [{1000, 5}, {60000, 100}]}
+  ```
+  or at runtime:
+  ```
+  Ratekeeper.add_limit "myapi.org", 1000, 5
+  Ratekeeper.add_limit "myapi.org", 60000, 100
+  ```
+  This sets limits to 5 requests per 1 second and 100 requests per minute.
+
+  To check time to release rate limits:
+  ```
+  Ratekeeper.time_to_wait "myapi.org"
+  ```
+
+  To appoint a request to rate limited api:
+  ```
+  case Ratekeeper.register("myapi.org", 10_000) do
+    nil -> raise "Rate limits exceeded, request not allowed in next 10 seconds"
+    delay ->
+      :timer.sleep(delay)
+      MyApi.do_request()
+  end
+  ```
+  """
   use GenServer
 
   @name __MODULE__
 
   ## Client API
 
+  @doc """
+  Starts Ratekeeper server.
+
+  Limits should be in format ```%{bucket_name: [{interval, limit}]}```
+  """
   def start_link(limits) do
     GenServer.start_link(__MODULE__, [limits], name: @name)
   end
 
+  @doc """
+  Adds limit rule.
+  """
   def add_limit(id, interval, limit) when interval > 0 and limit > 0 do
     GenServer.cast(@name, {:add_limit, id, interval, limit})
   end
 
+  @doc """
+  Deletes limit rule.
+  """
   def delete_limit(id, interval) do
     GenServer.cast(@name, {:delete_limit, id, interval})
   end
 
+  @doc """
+  Resets all hits registered for current intervals.
+  """
   def reset_hits(id) do
     GenServer.cast(@name, {:reset_hits, id})
   end
 
+  @doc """
+  Returns time in milliseconds to wait for the next allowed request.
+  """
   def time_to_wait(id) do
     GenServer.call(@name, {:time_to_wait, id})
   end
 
+  @doc """
+  Registers next request to the rate limited api in specified time.
+
+  Returns delay to wait before the next allowed request or ```nil``` if no request allowed in ```max_allowed_time```
+  """
   def register(id, max_waiting_time \\ 0) do
     GenServer.call(@name, {:register, id, max_waiting_time})
   end

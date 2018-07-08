@@ -1,7 +1,8 @@
 # Ratekeeper
 
-Ratekeeper allows you to rate limit calls to external API or anything else.
+Ratekeeper is a library to schedule rate-limited actions.
 It supports complex rate limits and estimates time left to reset limits.
+
 
 ## Installation
 
@@ -15,30 +16,30 @@ end
 
 ## Usage
 
-Set the limits:
-```elixir
-iex(1)> Ratekeeper.add_limit "api.org", 1000, 1
-:ok
-iex(2)> Ratekeeper.add_limit "api.org", 60_000, 5
-:ok
+Limits can be set on initialization:
 ```
-Here we set 2 limits for "api.org": 1 request per second and 5 requests / minute.
+Ratekeeper.start_link %{"myapi.org" => [{1000, 5}, {60000, 100}]}
+```
+or at runtime:
+```
+Ratekeeper.add_limit "myapi.org", 1000, 5
+Ratekeeper.add_limit "myapi.org", 60000, 100
+```
+This sets limits to 5 requests per 1 second and 100 requests per minute.
 
-Now you should appoint your requests with Ratekeeper.register:
+To check time to release rate limits:
+```
+Ratekeeper.time_to_wait "myapi.org"
+```
 
-```elixir
-case Ratekeeper.register("api.org", 60_000) do
-  nil -> raise "Request not allowed in the next 60 seconds"
+To appoint a request to rate limited api:
+```
+case Ratekeeper.register("myapi.org", 10_000) do
+  nil -> raise "Rate limits exceeded, request not allowed in next 10 seconds"
   delay ->
     :timer.sleep(delay)
-    make_request("http://api.org/stop?limiting=me")
+    MyApi.do_request()
 end
-```
-
-To only check time left to when new request can be made:
-```elixir
-iex(3)> Ratekeeper.time_to_wait "api.org"
-49027
 ```
 
 
