@@ -2,9 +2,9 @@ defmodule Ratekeeper do
   @moduledoc """
   Ratekeeper is a library to schedule rate-limited actions.
 
-  Limits can be set on initialization:
+  Limits can be set in config:
   ```
-  Ratekeeper.start_link %{"myapi.org" => [{1000, 5}, {60000, 100}]}
+  config :ratekeeper, :limits, %{"myapi.org" => [{1000, 5}, {60000, 100}]}
   ```
   or at runtime:
   ```
@@ -37,9 +37,10 @@ defmodule Ratekeeper do
   @doc """
   Starts Ratekeeper server.
 
-  Limits should be in format ```%{bucket_name: [{interval, limit}]}```
+  ```args[:limits]``` can be provided to set limits in format ```%{bucket_name: [{interval, limit}]}```
   """
-  def start_link(limits) do
+  def start_link(args) do
+    limits = args[:limits] || Application.get_env(:ratekeeper, :limits)
     GenServer.start_link(__MODULE__, [limits], name: @name)
   end
 

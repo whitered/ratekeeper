@@ -16,9 +16,10 @@ end
 
 ## Usage
 
-Limits can be set on initialization:
+
+Limits can be set in config:
 ```
-Ratekeeper.start_link %{"myapi.org" => [{1000, 5}, {60000, 100}]}
+config :ratekeeper, :limits, %{"myapi.org" => [{1000, 5}, {60000, 100}]}
 ```
 or at runtime:
 ```
