@@ -68,6 +68,20 @@ defmodule Ratekeeper do
   end
 
   @doc """
+  Returns all limits
+  """
+  def get_limits() do
+    GenServer.call(@name, {:get_limits})
+  end
+
+  @doc """
+  Returns limits for id
+  """
+  def get_limits(id) do
+    GenServer.call(@name, {:get_limits, id})
+  end
+
+  @doc """
   Resets all hits registered for current intervals.
   """
   def reset_hits(id) do
@@ -133,6 +147,23 @@ defmodule Ratekeeper do
           update_in(state[id][:intervals], update_intervals)
       end
     {:noreply, new_state}
+  end
+
+  def handle_call({:get_limits}, _from, state) do
+    limits =
+      state
+      |> Enum.map(&limits/1)
+      |> Map.new()
+    {:reply, limits, state}
+  end
+
+  def handle_call({:get_limits, id}, _from, state) do
+    limits =
+      case state[id] do
+        nil -> nil
+        bucket -> [limits({id, bucket})] |> Map.new()
+      end
+    {:reply, limits, state}
   end
 
   def handle_call({:time_to_wait, id}, _from, state) do
@@ -223,5 +254,13 @@ defmodule Ratekeeper do
       |> Enum.map(update_hits)
       |> Map.new()
     %{last_hit: time, intervals: new_intervals}
+  end
+
+  defp limits({id, %{intervals: intervals}}) do
+    limits =
+      intervals
+      |> Enum.map(fn {int, {limit, _}} -> {int, limit} end)
+      |> Map.new()
+    {id, limits}
   end
 end
