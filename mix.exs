@@ -11,7 +11,6 @@ defmodule Ratekeeper.MixProject do
       description: description(),
       source_url: "https://github.com/whitered/ratekeeper",
       homepage_url: "https://github.com/whitered/ratekeeper",
-      docs: [extras: ["README.md"]],
       package: package()
     ]
   end
