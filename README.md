@@ -10,7 +10,7 @@ Add `ratekeeper` as dependency in `mix.exs`
 
 ``` elixir
 def deps do
-    [{:ratekeeper, "~> 0.2.0"}]
+    [{:ratekeeper, "~> 0.2"}]
 end
 ```
 
@@ -18,12 +18,12 @@ end
 
 Limits can be set in config:
 ```elixir
-config :ratekeeper, :limits, %{"myapi.org" => [{1000, 5}, {60000, 100}]}
+config :ratekeeper, :limits, %{"myapi.org" => [{1000, 5}, {60_000, 100}]}
 ```
 or at runtime:
 ```elixir
 Ratekeeper.add_limit "myapi.org", 1000, 5
-Ratekeeper.add_limit "myapi.org", 60000, 100
+Ratekeeper.add_limit "myapi.org", 60_000, 100
 ```
 This sets limits to *5 requests per 1 second* and *100 requests per minute*.
 
