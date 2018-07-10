@@ -80,12 +80,15 @@ defmodule Ratekeeper do
       case state[id] do
         nil ->
           put_in(state[id], %{intervals: %{interval => {limit, limit}}, last_hit: current_time()})
+
         _ ->
           update_intervals = fn map ->
             Map.update(map, interval, {limit, limit}, fn {_old_lim, hits} -> {limit, hits} end)
           end
+
           update_in(state[id][:intervals], update_intervals)
       end
+
     {:noreply, new_state}
   end
 
@@ -95,21 +98,26 @@ defmodule Ratekeeper do
         nil -> state
         _ -> pop_in(state[id][:intervals][interval]) |> elem(1)
       end
+
     {:noreply, new_state}
   end
 
   def handle_cast({:reset_hits, id}, state) do
-    new_state = 
+    new_state =
       case state[id] do
-        nil -> state
+        nil ->
+          state
+
         _ ->
           update_intervals = fn map ->
             map
             |> Enum.map(fn {interval, {limit, _hits}} -> {interval, {limit, 0}} end)
             |> Map.new()
           end
+
           update_in(state[id][:intervals], update_intervals)
       end
+
     {:noreply, new_state}
   end
 
@@ -118,6 +126,7 @@ defmodule Ratekeeper do
       state
       |> Enum.map(&limits/1)
       |> Map.new()
+
     {:reply, limits, state}
   end
 
@@ -127,33 +136,42 @@ defmodule Ratekeeper do
         nil -> nil
         bucket -> [limits({id, bucket})] |> Map.new()
       end
+
     {:reply, limits, state}
   end
 
   def handle_call({:time_to_wait, id}, _from, state) do
     case state[id] do
-      nil -> {:reply, 0, state}
+      nil ->
+        {:reply, 0, state}
+
       bucket ->
         now = current_time()
+
         ttw =
           bucket
           |> next_available_time(now)
           |> get_delay(now)
+
         {:reply, ttw, state}
     end
   end
 
   def handle_call({:register, id, max_waiting_time}, _from, state) do
     case state[id] do
-      nil -> {:reply, 0, state}
+      nil ->
+        {:reply, 0, state}
+
       bucket ->
         now = current_time()
         time = next_available_time(bucket, now)
         delay = get_delay(time, now)
+
         case delay <= max_waiting_time do
           true ->
             new_state = Map.put(state, id, register_hit(bucket, time))
             {:reply, delay, new_state}
+
           false ->
             {:reply, nil, state}
         end
@@ -163,19 +181,22 @@ defmodule Ratekeeper do
   ## implementation
 
   defp read_limits(nil), do: %{}
+
   defp read_limits(arg) do
     arg
-    |> Enum.map(fn {id, limits} -> {id, %{intervals: build_intervals(limits), last_hit: current_time()}} end)
-    |> Map.new
+    |> Enum.map(fn {id, limits} ->
+      {id, %{intervals: build_intervals(limits), last_hit: current_time()}}
+    end)
+    |> Map.new()
   end
 
   defp build_intervals(limits) do
     limits
     |> Enum.map(fn {interval, limit} -> {interval, {limit, limit}} end)
-    |> Map.new
+    |> Map.new()
   end
 
-  if Mix.env == :test do
+  if Mix.env() == :test do
     @now :os.system_time(:millisecond)
     defp current_time, do: @now
   else
@@ -200,10 +221,11 @@ defmodule Ratekeeper do
   end
 
   defp get_next_available([], last_hit), do: last_hit
+
   defp get_next_available(filled_intervals, last_hit) do
     filled_intervals
     |> Enum.map(&((div(last_hit, &1) + 1) * &1))
-    |> Enum.max
+    |> Enum.max()
   end
 
   defp register_hit(%{last_hit: last_hit, intervals: intervals}, time) do
@@ -213,10 +235,12 @@ defmodule Ratekeeper do
         false -> {interval, {limit, 1}}
       end
     end
+
     new_intervals =
       intervals
       |> Enum.map(update_hits)
       |> Map.new()
+
     %{last_hit: time, intervals: new_intervals}
   end
 
@@ -225,6 +249,7 @@ defmodule Ratekeeper do
       intervals
       |> Enum.map(fn {int, {limit, _}} -> {int, limit} end)
       |> Map.new()
+
     {id, limits}
   end
 end
