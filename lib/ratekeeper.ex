@@ -62,10 +62,10 @@ defmodule Ratekeeper do
   @doc """
   Registers next request to the rate limited api in specified time.
 
-  Returns delay to wait before the next allowed request or ```nil``` if no request allowed in ```max_allowed_time```
+  Returns delay to wait before the next allowed request or ```nil``` if no request allowed in ```max_delay```
   """
-  def register(id, max_waiting_time \\ 0) do
-    GenServer.call(@name, {:register, id, max_waiting_time})
+  def register(id, max_delay \\ 0) do
+    GenServer.call(@name, {:register, id, max_delay})
   end
 
   ## Server Callbacks
@@ -157,7 +157,7 @@ defmodule Ratekeeper do
     end
   end
 
-  def handle_call({:register, id, max_waiting_time}, _from, state) do
+  def handle_call({:register, id, max_delay}, _from, state) do
     case state[id] do
       nil ->
         {:reply, 0, state}
@@ -167,7 +167,7 @@ defmodule Ratekeeper do
         time = next_available_time(bucket, now)
         delay = get_delay(time, now)
 
-        case delay <= max_waiting_time do
+        case delay <= max_delay do
           true ->
             new_state = Map.put(state, id, register_hit(bucket, time))
             {:reply, delay, new_state}
