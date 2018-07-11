@@ -54,6 +54,9 @@ defmodule Ratekeeper do
 
   @doc """
   Returns time in milliseconds to wait for the next allowed request.
+
+  This function does not appoint actual api call! Use it only to estimate time (probably no practical use at all).
+  If you are going to make a request, use `Ratekeeper.register/2` instead.
   """
   def time_to_wait(id) do
     GenServer.call(@name, {:time_to_wait, id})
