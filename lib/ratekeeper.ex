@@ -74,10 +74,12 @@ defmodule Ratekeeper do
   ## Server Callbacks
 
   @doc false
+  @impl true
   def init([arg]) do
     {:ok, read_limits(arg)}
   end
 
+  @impl true
   def handle_cast({:add_limit, id, interval, limit}, state) do
     new_state =
       case state[id] do
@@ -95,6 +97,7 @@ defmodule Ratekeeper do
     {:noreply, new_state}
   end
 
+  @impl true
   def handle_cast({:delete_limit, id, interval}, state) do
     new_state =
       case state[id] do
@@ -105,6 +108,7 @@ defmodule Ratekeeper do
     {:noreply, new_state}
   end
 
+  @impl true
   def handle_cast({:reset_hits, id}, state) do
     new_state =
       case state[id] do
@@ -124,6 +128,7 @@ defmodule Ratekeeper do
     {:noreply, new_state}
   end
 
+  @impl true
   def handle_call({:get_limits}, _from, state) do
     limits =
       state
@@ -133,6 +138,7 @@ defmodule Ratekeeper do
     {:reply, limits, state}
   end
 
+  @impl true
   def handle_call({:get_limits, id}, _from, state) do
     limits =
       case state[id] do
@@ -143,6 +149,7 @@ defmodule Ratekeeper do
     {:reply, limits, state}
   end
 
+  @impl true
   def handle_call({:time_to_wait, id}, _from, state) do
     case state[id] do
       nil ->
@@ -160,6 +167,7 @@ defmodule Ratekeeper do
     end
   end
 
+  @impl true
   def handle_call({:register, id, max_delay}, _from, state) do
     case state[id] do
       nil ->
