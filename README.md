@@ -1,7 +1,7 @@
 # Ratekeeper
 
-Ratekeeper is a library to schedule rate-limited actions.
-It supports complex rate limits and estimates time left to reset limits.
+Ratekeeper is a library for scheduling rate-limited actions.
+It supports complex rate limits and estimates time left to resetting limits.
 
 
 ## Installation
@@ -30,7 +30,8 @@ This sets limits to *5 requests per 1 second* and *100 requests per minute*.
 Appoint a request to rate limited api:
 ```elixir
 case Ratekeeper.register("myapi.org", 10_000) do
-  nil -> raise "Rate limits exceeded, request not allowed in next 10 seconds"
+  nil ->
+    raise "Rate limits exceeded, request not allowed in next 10 seconds"
   delay ->
     :timer.sleep(delay)
     MyApi.do_request()
